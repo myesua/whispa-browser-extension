@@ -1,0 +1,368 @@
+/* overlay_ui.css */
+
+/* CRITICAL: Ensure the container floats above everything */
+#whispa-overlay-container {
+  all: unset; /* Reset all host page styles */
+  position: fixed !important;
+  top: 20px !important;
+  right: 20px !important;
+  z-index: 2147483647 !important; /* Max z-index to stay on top */
+  font-family: 'Poppins', sans-serif; /* Use your preferred font */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  width: 320px;
+  max-width: 90vw;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Style the core panel */
+.whispa-controls {
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+/* Header and Logo Styles */
+header {
+  margin-bottom: 10px;
+}
+
+.top_content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo-img {
+  width: auto;
+  height: 24px;
+  margin-right: 8px;
+}
+
+.actions {
+  display: flex;
+}
+
+/* Toolbar (Capture/Record/Generate) */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid #f0f0f0;
+}
+
+.controls button,
+.actions button,
+.post-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.controls button:hover,
+.actions button:hover,
+.post-actions button:hover {
+  background-color: #f0f0f0;
+}
+
+#modeSelectOverlay {
+  padding: 4px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+/* Main Content and Status */
+main {
+  padding: 5px 0;
+}
+
+.status-message {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.85em;
+  color: #555;
+}
+
+.progress-container {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+progress {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border: none;
+  background-color: #e0e0e0;
+}
+
+progress::-webkit-progress-bar {
+  background-color: #e0e0e0;
+  border-radius: 3px;
+}
+
+progress::-webkit-progress-value {
+  background-color: #4caf50; /* Green color for progress */
+  border-radius: 3px;
+}
+
+/* Notes Section */
+.notes-container {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  max-height: 150px;
+  overflow-y: auto;
+  background-color: #f9f9f9;
+  margin-top: 10px;
+}
+
+#notes {
+  font-size: 14px;
+  color: initial;
+}
+
+.post-actions,
+.action-group {
+  display: flex;
+  width: 100%;
+}
+
+.post-actions {
+  justify-content: space-between;
+}
+
+.action-group {
+  gap: 8px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+#capturedImage {
+  width: 100%;
+  height: 220px;
+}
+
+progress {
+  width: 70px;
+  height: 10px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  border-radius: 10px;
+  background-color: #e0e0e0;
+  overflow: hidden;
+}
+
+/* Chrome, Safari, Edge */
+progress::-webkit-progress-bar {
+  background-color: #eee;
+  border-radius: 10px;
+}
+
+progress::-webkit-progress-value {
+  background-color: #16d47b;
+  border-radius: 10px;
+  transition: width 0.3s ease;
+}
+
+.progress::-webkit-progress-value {
+  background-color: orange;
+}
+
+.progress-error::-webkit-progress-value {
+  background-color: red;
+}
+
+/* Firefox */
+progress::-moz-progress-bar {
+  background-color: #16d47b;
+  border-radius: 10px;
+}
+
+.progress::-moz-progress-bar {
+  background-color: orange;
+}
+
+.progress-error::-moz-progress-bar {
+  background-color: red;
+}
+
+.linear-modal,
+.settings-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.linear-form {
+  background-color: #222;
+  border-radius: 8px;
+  padding: 20px;
+  width: 80%;
+  max-width: 400px;
+}
+
+.linear-form h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #aaa;
+  font-size: 12px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 8px;
+  background-color: #333;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 14px;
+}
+
+.form-group textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.linear-success {
+  color: #4caf50;
+  text-align: center;
+  margin: 10px 0;
+}
+
+.settings-modal-content {
+  background: #2c2c2c;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+  width: 90%;
+  max-width: 380px;
+  text-align: left;
+}
+
+.form-group-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.settings-modal h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 18px;
+  color: #ececec;
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #b0b0b0;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #444;
+  border-radius: 5px;
+  background: #333;
+  color: #ececec;
+  font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #007aff;
+}
+
+.settings-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Toast Notification */
+.toast {
+  position: fixed;
+  top: 0;
+  right: 0;
+  /* bottom: 20px; */
+  /* left: 50%; */
+  /* transform: translateX(-50%); */
+  background-color: #333;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 5px;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.toast.show {
+  opacity: 1;
+}
+
+.error {
+  background-color: darkred;
+}
+
+/* Success message */
+.success-message {
+  display: block;
+  margin-bottom: 15px;
+  font-size: 14px;
+  color: #b0b0b0;
+}
