@@ -1,24 +1,38 @@
 <div id="whispa-controls" class="whispa-controls">
   <header>
-    <div class="top_content">
+    <div id="top_content" class="top_content">
       <div class="logo">
-        <img src="icons/logo_dark.png" alt="Whispa Logo" class="logo-img" />
+        <img
+          src="assets/icons/new_logo.png"
+          alt="Whispa Logo"
+          class="logo-img"
+        />
+        <div class="logo-text">Whispa AI</div>
       </div>
       <div class="actions">
-        <button id="closeOverlayBtn" class="action-btn" title="Dismiss Whispa">
-          <img src="icons/x.svg" width="16" height="16" alt="Close" />
+        <button
+          id="closeOverlayBtn"
+          class="action-btn close-btn"
+          title="Dismiss Whispa"
+        >
+          <img src="assets/icons/x.svg" width="16" height="16" alt="Close" />
         </button>
       </div>
     </div>
 
-    <div class="toolbar">
+    <div class="toolbar hidden">
       <div id="controls" class="controls">
         <button id="captureBtn" class="action-btn" title="Capture screen">
-          <img src="icons/camera.svg" width="16" height="16" alt="Capture" />
+          <img
+            src="assets/icons/camera.svg"
+            width="16"
+            height="16"
+            alt="Capture"
+          />
         </button>
         <button id="recordBtn" class="action-btn" title="Record audio">
           <img
-            src="icons/mic-off.svg"
+            src="assets/icons/mic-off.svg"
             width="16"
             height="16"
             alt="Record"
@@ -27,7 +41,7 @@
         </button>
         <button id="generateBtn" class="action-btn" title="Generate note">
           <img
-            src="icons/book-open.svg"
+            src="assets/icons/book-open.svg"
             width="16"
             height="16"
             alt="Generate"
@@ -38,7 +52,12 @@
       <div id="postActions" class="post-actions hidden">
         <div class="action-group">
           <button id="copyBtn" class="action-btn" disabled title="Copy note">
-            <img src="icons/copy.svg" width="16" height="16" alt="Copy" />
+            <img
+              src="assets/icons/copy.svg"
+              width="16"
+              height="16"
+              alt="Copy"
+            />
           </button>
           <button
             id="exportBtn"
@@ -46,7 +65,12 @@
             disabled
             title="Export notes"
           >
-            <img src="icons/download.svg" width="16" height="16" alt="Export" />
+            <img
+              src="assets/icons/download.svg"
+              width="16"
+              height="16"
+              alt="Export"
+            />
           </button>
           <button
             id="linearBtn"
@@ -54,19 +78,33 @@
             disabled
             title="Send to Linear"
           >
-            <img src="icons/box.svg" width="16" height="16" alt="Box" />
+            <img src="assets/icons/box.svg" width="16" height="16" alt="Box" />
           </button>
         </div>
-        <button
-          id="settingsBtn"
-          class="action-btn settings-btn"
-          title="Settings"
-        >
-          <img src="icons/settings.svg" width="16" height="16" alt="Settings" />
-        </button>
+        <div class="post-actions-right">
+          <button
+            id="refreshBtn"
+            class="action-btn refresh-btn"
+            title="Refresh"
+          >
+            <img src="assets/icons/refresh-cw.svg" id="refreshIcon" />
+          </button>
+          <button
+            id="settingsBtn"
+            class="action-btn settings-btn"
+            title="Settings"
+          >
+            <img
+              src="assets/icons/settings.svg"
+              width="16"
+              height="16"
+              alt="Settings"
+            />
+          </button>
+        </div>
       </div>
 
-      <select id="modeSelectOverlay" class="">
+      <select id="modeSelectOverlay" class="" value="general">
         <option value="general" selected>General</option>
         <option value="bug">Bug</option>
         <option value="ux">UX</option>
@@ -75,17 +113,20 @@
     </div>
   </header>
 
-  <main>
+  <main class="hidden">
     <span id="status" class="status-message">Ready to capture...</span>
-    <div id="progressContainer" class="progress-container">
-      <progress value="0" max="100" id="captureProgress">Capture</progress>
-      <progress value="0" max="100" id="recordProgress">Record</progress>
-      <progress value="0" max="100" id="generateProgress">Generate</progress>
+    <div id="progressContainerWrapper">
+      <div id="progressContainer" class="progress-container">
+        <progress value="0" max="100" id="captureProgress">Capture</progress>
+        <progress value="0" max="100" id="recordProgress">Record</progress>
+        <progress value="0" max="100" id="generateProgress">Generate</progress>
+      </div>
+      <span id="loader" class=""></span>
     </div>
-
     <div id="notesPreview" class="notes-container hidden">
       <div id="notes" class="notes-content">
-        <p class="placeholder">Your generated notes will appear here...</p>
+        Your notes will appear here in a bit. Scroll down to see the streaming
+        once active...
       </div>
     </div>
 
@@ -101,9 +142,10 @@
     <div class="form-group login-password">
       <label for="password">Password:</label>
       <input type="password" id="password" name="password" required />
+      <img id="eyeIcon" class="eyeIcon" src="assets/icons/eye-off.svg" />
     </div>
-    <button id="loginBtn" class="form-btn">Login</button>
-    <div id="registerLink" class="register-link">Register instead</div>
+    <button id="loginBtn" class="btn btn-primary">Login</button>
+    <a id="registerLink" href="" class="register-link">Create an account</a>
   </div>
   <div id="register" class="register hidden">
     <div class="form-group register-name">
@@ -117,9 +159,10 @@
     <div class="form-group register-password">
       <label for="password">Password:</label>
       <input type="password" id="password-register" name="password" required />
+      <img id="eyeIcon" class="eyeIcon" src="assets/icons/eye-off.svg" />
     </div>
-    <button id="registerBtn" class="form-btn">Register</button>
-    <div id="loginLink" class="login-link">Login instead</div>
+    <button id="registerBtn" class="btn btn-primary">Register</button>
+    <a id="loginLink" href="" class="login-link">Login instead</a>
   </div>
 
   <!-- Linear Modal -->
@@ -129,29 +172,33 @@
       <div id="linearSuccess" class="linear-success hidden">
         Issue created successfully!
       </div>
-      <div class="form-group">
-        <label for="issueTitle">Title</label>
-        <input type="text" id="issueTitle" placeholder="Enter issue title" />
-      </div>
-      <div class="form-group">
-        <label for="issueDescription">Description</label>
-        <textarea
-          id="issueDescription"
-          placeholder="Enter issue description"
-        ></textarea>
-      </div>
-      <div class="form-group">
-        <label for="issuePriority">Priority</label>
-        <select id="issuePriority">
-          <option value="low">Low</option>
-          <option value="medium" selected>Medium</option>
-          <option value="high">High</option>
-          <option value="urgent">Urgent</option>
-        </select>
+      <div class="form-group-container">
+        <div class="form-group">
+          <label for="issueTitle">Title</label>
+          <input type="text" id="issueTitle" placeholder="Enter issue title" />
+        </div>
+        <div class="form-group">
+          <label for="issueDescription">Description</label>
+          <textarea
+            id="issueDescription"
+            placeholder="Enter issue description"
+          ></textarea>
+        </div>
+        <div class="form-group">
+          <label for="issuePriority">Priority</label>
+          <select id="issuePriority">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+            <option value="urgent">Urgent</option>
+          </select>
+        </div>
       </div>
       <div class="form-actions">
         <button id="cancelLinearBtn" class="btn btn-secondary">Cancel</button>
-        <button id="submitLinearBtn" class="btn primary">Create issue</button>
+        <button id="submitLinearBtn" class="btn btn-primary">
+          Create issue
+        </button>
       </div>
     </div>
   </div>
@@ -167,13 +214,15 @@
             <small style="color: red; margin-left: 3px">*</small></label
           >
           <input type="password" id="linearApiKey" name="linearApiKey" />
+          <img id="eyeIcon" class="eyeIcon" src="assets/icons/eye-off.svg" />
         </div>
         <div class="form-group">
           <label for="linearTeamId"
             >Linear Team ID
             <small style="color: red; margin-left: 3px">*</small></label
           >
-          <input type="text" id="linearTeamId" name="linearTeamId" />
+          <input type="password" id="linearTeamId" name="linearTeamId" />
+          <img id="eyeIcon" class="eyeIcon" src="assets/icons/eye-off.svg" />
         </div>
         <div class="form-group">
           <label for="linearLabel">Linear Label</label>
@@ -181,7 +230,7 @@
             type="text"
             id="linearLabel"
             name="linearLabel"
-            placeholder="IDs seperated by commas"
+            placeholder="IDs of label separated by commas"
           />
         </div>
       </div>
@@ -190,5 +239,27 @@
         <button id="saveSettingsBtn" class="btn btn-primary">Save</button>
       </div>
     </div>
+  </div>
+  <div id="welcomeScreenContainer" class="welcome-screen-container">
+    AI Quick
+    <div id="flip">
+      <div class="flipper">
+        <div class="flip-item green"><div>capture</div></div>
+        <div class="flip-item orange"><div>record</div></div>
+        <div class="flip-item blue"><div>generate</div></div>
+        <div class="flip-item green"><div>copy</div></div>
+        <div class="flip-item orange"><div>export</div></div>
+        <div class="flip-item blue"><div>linearize</div></div>
+        <div class="flip-item green"><div>privacy</div></div>
+
+        <div class="flip-item orange"><div>capture</div></div>
+        <div class="flip-item blue"><div>record</div></div>
+      </div>
+    </div>
+    Notes!
+  </div>
+  <div id="welcomeScreenFooter" class="welcome-screen-footer">
+    <span class="loader"></span>
+    <p>an AI-powered note-taking assistant</p>
   </div>
 </div>

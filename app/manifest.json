@@ -19,7 +19,7 @@
       "resources": [
         "overlay.html",
         "overlay.css",
-        "icons/*",
+        "assets/*",
         "capture_window.html",
         "capture_window.js"
       ],
@@ -27,11 +27,10 @@
     }
   ],
   "action": {
-    "default_popup": "popup.html",
     "default_icon": {
-      "16": "icons/logo.png",
-      "48": "icons/logo.png",
-      "128": "icons/logo.png"
+      "16": "assets/icons/new_logo.png",
+      "48": "assets/icons/new_logo.png",
+      "128": "assets/icons/new_logo.png"
     }
   },
   "background": {
@@ -39,8 +38,8 @@
     "type": "module"
   },
   "icons": {
-    "16": "icons/logo.png",
-    "48": "icons/logo.png",
-    "128": "icons/logo.png"
+    "16": "assets/icons/new_logo.png",
+    "48": "assets/icons/new_logo.png",
+    "128": "assets/icons/new_logo.png"
   }
 }
