@@ -1,7 +1,6 @@
 // Background script for Whispa extension
 // const API_BASE_URL = 'https://whispa-ai.onrender.com/';
 const API_BASE_URL = 'http://127.0.0.1:5000';
-const token = '';
 
 // Global storage for session data (heavy image, transcription text)
 const sessionData = {
@@ -15,33 +14,45 @@ const sessionData = {
 
 // Helper to retrieve token from storage
 async function getToken() {
-  const result = await chrome.storage.local.get('token');
-  return result.token ?? token;
+  const result = await chrome.storage.local.get(['whispaEnabled', 'user']);
+  return result.whispaEnabled && result.user?.token ? result.user.token : null;
 }
+
+function resetData() {
+  sessionData.captureData = null;
+  sessionData.transcription = null;
+  sessionData.currentTabId = null;
+  sessionData.captureWindowId = null;
+  sessionData.isRecording = null;
+  sessionData.captureTabId = null;
+}
+
+async function refreshData() {
+  sessionData.captureData = null;
+  sessionData.transcription = null;
+  sessionData.captureWindowId = null;
+  sessionData.isRecording = null;
+  sessionData.captureTabId = null;
+}
+
+chrome.action.onClicked.addListener(async (tab) => {
+  sessionData.currentTabId = tab.id;
+
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ['content.js'],
+    });
+    await chrome.tabs.sendMessage(tab.id, {
+      action: 'showOverlay',
+    });
+  } catch (error) {
+    console.error('Failed to inject/show overlay:', error);
+  }
+});
 
 // Listener for messages from popup or content scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'launchOverlay') {
-    sessionData.currentTabId = request.tabId;
-    chrome.scripting
-      .executeScript({
-        target: { tabId: request.tabId },
-        files: ['content.js'],
-      })
-      .then(() => {
-        return chrome.tabs.sendMessage(request.tabId, {
-          action: 'showOverlay',
-        });
-      })
-      .then(() => {
-        sendResponse({ success: true });
-      })
-      .catch((error) => {
-        sendResponse({ success: false, error: error.message });
-      });
-    return true;
-  }
-
   if (request.action === 'content_captureScreen') {
     const targetTabId = sessionData.currentTabId;
 
@@ -52,12 +63,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     chrome.tabs
       .get(targetTabId)
-      .then((tab) => {
-        console.log('tab: ', tab);
-        // Tab exists and is accessible. Proceed with capture.
+      .then(() => {
         return captureCurrentTab(targetTabId);
       })
-      .then((res) => {
+      .then(() => {
+        sendUiUpdate('updateProgress', {
+          elementId: 'captureProgress',
+          status: 'success',
+        });
         sendResponse({ success: true, message: 'Image captured and stored.' });
       })
       .catch((error) => {
@@ -74,7 +87,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           action: 'updateStatus',
           message: `❌ Error: ${errorMessage}. Please re-launch the extension.`,
         });
-
+        sendUiUpdate('updateProgress', {
+          elementId: 'captureProgress',
+          status: 'error',
+        });
         sendResponse({ success: false, error: errorMessage });
       });
 
@@ -83,8 +99,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   if (request.action === 'content_getCaptureData') {
     if (sessionData.captureData) {
+      sendUiUpdate('updateProgress', {
+        elementId: 'captureProgress',
+        status: 'success',
+      });
       sendResponse({ success: true, imageData: sessionData.captureData });
     } else {
+      sendUiUpdate('updateProgress', {
+        elementId: 'captureProgress',
+        status: 'error',
+      });
       sendResponse({ success: false, error: 'No capture data available.' });
     }
     return false;
@@ -100,6 +124,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendUiUpdate('ui_setButtonState', {
           buttonId: 'recordBtn',
           disabled: false,
+        });
+        sendUiUpdate('updateProgress', {
+          elementId: 'recordProgress',
+          status: 'error',
         });
         sendResponse({ success: false, error: 'Recording state corrupted.' });
         return true;
@@ -119,6 +147,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
               buttonId: 'recordBtn',
               disabled: false,
             });
+            sendUiUpdate('updateProgress', {
+              elementId: 'recordProgress',
+              status: 'error',
+            });
             sendResponse({
               success: false,
               error: chrome.runtime.lastError.message,
@@ -126,17 +158,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             return;
           }
           sessionData.isRecording = false;
-          sendUiUpdate('ui_toggleMicIcon', { icon: 'icons/mic-off.svg' });
+          sendUiUpdate('ui_toggleMicIcon', {
+            icon: 'assets/icons/mic-off.svg',
+          });
           sendUiUpdate('updateStatus', {
             message: 'Stopping recording...',
           });
           sendUiUpdate('ui_setButtonState', {
             buttonId: 'recordBtn',
             disabled: true,
-          });
-          sendUiUpdate('ui_setButtonState', {
-            buttonId: 'generateBtn',
-            disabled: false,
           });
           sendResponse({ success: true, isRecording: false });
         }
@@ -174,9 +204,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       buttonId: 'generateBtn',
       disabled: true,
     });
-
     sessionData.isRecording = true;
-
     return true;
   }
 
@@ -193,6 +221,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendUiUpdate('ui_setButtonState', {
       buttonId: 'recordBtn',
       disabled: false,
+    });
+    sendUiUpdate('updateProgress', {
+      elementId: 'recordProgress',
+      status: 'error',
     });
     return false;
   }
@@ -241,65 +273,80 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           }),
         100
       );
-
+      setTimeout(
+        () =>
+          sendUiUpdate('updateStatus', {
+            message:
+              'Sending request to AI model (this may take 30-60 seconds)...',
+          }),
+        100
+      );
+      sendUiUpdate('updateProgress', {
+        elementId: 'recordProgress',
+        status: 'mid',
+      });
       // Proceed with transcription using the fixedFile
-      // transcribeAudio(fixedFile, audioExtension)
-      //   .then((transcription) => {
-      //     if (!transcription)
-      //       throw new Error('Transcription returned empty text.');
+      transcribeAudio(fixedFile, audioExtension)
+        .then((transcription) => {
+          if (!transcription)
+            throw new Error('Transcription returned empty text.');
 
-      //     sessionData.transcription = transcription;
-
-      //     sendUiUpdate('updateStatus', {
-      //       action: 'updateStatus',
-      //       message: 'Transcription Complete ✅',
-      //     });
-      //     sendUiUpdate('ui_setButtonState', {
-      //       buttonId: 'generateBtn',
-      //       disabled: false,
-      //     });
-      //   })
-      //   .catch((error) => {
-      //     console.error('FAILURE during transcription:', error);
-      //     sendUiUpdate('updateStatus', {
-      //       message: `Transcription Failed: ${error.message}`,
-      //     });
-      //     sendUiUpdate('ui_setButtonState', {
-      //       buttonId: 'recordBtn',
-      //       disabled: false,
-      //     });
-      //   });
+          sessionData.transcription = transcription;
+          sendUiUpdate('updateProgress', {
+            elementId: 'recordProgress',
+            status: 'success',
+          });
+          sendUiUpdate('updateStatus', {
+            action: 'updateStatus',
+            message: 'Transcription Complete ✅',
+          });
+          sendUiUpdate('ui_setButtonState', {
+            buttonId: 'generateBtn',
+            disabled: false,
+          });
+        })
+        .catch((error) => {
+          console.error('FAILURE during transcription:', error);
+          sendUiUpdate('updateStatus', {
+            message: `Transcription Failed: ${error.message}`,
+          });
+          sendUiUpdate('ui_setButtonState', {
+            buttonId: 'recordBtn',
+            disabled: false,
+          });
+          sendUiUpdate('updateProgress', {
+            elementId: 'recordProgress',
+            status: 'error',
+          });
+        });
     } catch (e) {
       console.error('Failed to reconstruct File from Blob:', e);
       sendUiUpdate('updateStatus', {
         message: `FATAL ERROR: Failed to process audio data.`,
+      });
+      sendUiUpdate('updateProgress', {
+        elementId: 'recordProgress',
+        status: 'error',
       });
     }
     return true;
   }
 
   if (request.action === 'content_generateNotes') {
-    console.log('got here bjs');
-    generateNotes()
-      .then((notes) => {
-        sendResponse({
-          success: true,
-          notesContent: notes.content,
-          currentTabId: sessionData.currentTabId,
-        });
-      })
-      .catch((error) => sendResponse({ success: false, error: error.message }));
+    generateNotes(request.qa_type).catch((error) => {
+      console.error('Final error in generation flow:', error);
+    });
     return true;
   }
 
-  if (request.action === 'linearCreateIssue') {
+  if (request.action === 'content_linearizeNotes') {
     createLinearIssue({
       title: request.title,
       description: request.description,
       priority: request.priority,
       team_id: request?.team_id,
       linear_api_key: request?.linear_api_key,
-      label_ids: request?.label_ids,
+      label_ids: request?.label_ids ?? [],
     })
       .then((res) => {
         sendResponse({ success: true, data: res });
@@ -310,41 +357,156 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       });
     return true;
   }
-  if (request.action === 'login') {
+  if (request.action === 'login_user') {
     login(request.email, request.password)
       .then((res) => {
-        sendResponse({ success: true, data: res, status: res.status });
+        if (res.success) {
+          sendResponse({
+            success: true,
+            data: {
+              token: res?.data?.access_token,
+              full_name: res?.data?.full_name,
+              privacy_mode: res?.data?.privacy_mode,
+            },
+          });
+        } else {
+          sendResponse({
+            success: false,
+            data: res.data,
+          });
+        }
       })
       .catch((error) => {
         console.error('Error logging in:', error);
         sendResponse({
           success: false,
           error: error.message,
-          status: res.status,
         });
       });
     return true;
   }
-  if (request.action === 'register') {
+  if (request.action === 'register_user') {
     register(request.email, request.password, request.name)
       .then((res) => {
-        sendResponse({ success: true, data: res, status: res.status });
+        if (!res.success) {
+          sendResponse({
+            success: false,
+            data: res.data,
+          });
+          return;
+        }
+        sendResponse({
+          success: true,
+          data: {
+            token: res?.data?.access_token,
+            full_name: res?.data?.full_name,
+            privacy_mode: res?.data?.privacy_mode,
+          },
+        });
       })
       .catch((error) => {
         console.error('Error registering:', error);
         sendResponse({
           success: false,
           error: error.message,
-          status: res.status,
         });
       });
     return true;
   }
+  if (request.action === 'content_checkTokenValidity') {
+    checkTokenValidity(request.token)
+      .then((res) => {
+        if (!res.success) {
+          sendResponse({
+            success: false,
+            data: res.data,
+          });
+          return;
+        }
+        sendResponse({ success: true, data: res.data });
+      })
+      .catch((error) => {
+        console.error('Error checking token validity:', error);
+        sendResponse({
+          success: false,
+          error: error.message,
+        });
+      });
+    return true;
+  }
+  if (request.action === 'content_refresh') {
+    refreshData()
+      .then(() => {
+        sendResponse({ success: true, message: 'Data reset successfully.' });
+      })
+      .catch((error) => {
+        sendResponse({ success: false, error: error.message });
+      });
+    return true;
+  }
+  if (request.action === 'content_removeOverlay') {
+    resetData();
+    return false;
+  }
 });
 
 // API calls and functions
+/**
+ * Check if the provided token is valid by making a request to the /auth/user endpoint.
+ * @param {string} token - The token to validate.
+ * @returns {Promise<{token: string, full_name: string, privacy_mode: boolean}>} - The response data if the token is valid.
+ * @throws {Error} - If the token is invalid or the request fails.
+ */
+async function checkTokenValidity(token) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/user/`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!res.ok) {
+      console.error('Error checking token validity:', res.status);
+      return { success: false, data: null };
+    }
+    const data = await res.json();
+    return {
+      success: true,
+      data: {
+        token: data?.access_token,
+        full_name: data.full_name,
+        privacy_mode: data.privacy_mode,
+      },
+    };
+  } catch (error) {
+    console.error('Failed to validate user:', error);
+    throw error;
+  }
+}
+
+/***
+ * @param {string} priority
+ */
+function mapIssuePriorityToAPI(priority) {
+  switch (priority) {
+    case 'medium':
+      return 2;
+    case 'high':
+      return 3;
+    case 'urgent':
+      return 4;
+    default:
+      return 1;
+  }
+}
 
 async function captureCurrentTab(tabId) {
+  sendUiUpdate('updateProgress', {
+    elementId: 'captureProgress',
+    status: 'start',
+  });
+  sendUiUpdate('showLoader', {});
   try {
     const tab = await chrome.tabs.get(tabId);
 
@@ -356,11 +518,12 @@ async function captureCurrentTab(tabId) {
     });
 
     sessionData.captureData = imageData;
-
     return { success: true, message: 'Image captured and stored.' };
   } catch (error) {
     console.error('Error in captureCurrentTab:', error);
     throw error;
+  } finally {
+    sendUiUpdate('hideLoader', {});
   }
 }
 
@@ -379,6 +542,11 @@ async function sendUiUpdate(action, payload) {
 
 // Function to open the small capture window
 async function openCaptureWindow(tabId) {
+  sendUiUpdate('updateProgress', {
+    elementId: 'recordProgress',
+    status: 'start',
+  });
+  sendUiUpdate('showLoader', {});
   try {
     const currentTab = await chrome.tabs.get(tabId);
 
@@ -424,7 +592,13 @@ async function openCaptureWindow(tabId) {
     return captureWin;
   } catch (error) {
     console.error('Error creating capture window:', error);
+    sendUiUpdate('updateProgress', {
+      elementId: 'captureProgress',
+      status: 'error',
+    });
     throw new Error(`Window creation failed: ${error.message}`);
+  } finally {
+    sendUiUpdate('hideLoader', {});
   }
 }
 
@@ -438,6 +612,8 @@ async function transcribeAudio(audioFile, audioExtension) {
   // 2. Append the Blob as a file, ensuring the filename has the correct extension
   const filename = `recording.${audioExtension}`;
   formData.append('audio_file', audioFile, filename);
+
+  sendUiUpdate('showLoader', {});
 
   try {
     const response = await fetch(`${API_BASE_URL}/audio/transcribe`, {
@@ -460,47 +636,135 @@ async function transcribeAudio(audioFile, audioExtension) {
   } catch (error) {
     console.error('Error in transcribing audio: ', error);
     throw error;
+  } finally {
+    sendUiUpdate('hideLoader', {});
   }
 }
 
-// Function to process captured screen and audio to generate notes
-async function generateNotes(captureData, transcription) {
-  // const token = await getToken();
-  // if (!token) throw new Error('Authentication token missing.');
-  // if (!sessionData.captureData || !captureData)
-  //   throw new Error('No screen capture data available.');
-  // if (!sessionData.transcription || !transcription)
-  //   throw new Error('No audio transcription available.');
+/**
+ *
+ * @param {"general" | "bug" | "ux" | "feature"} qa_type
+ * @returns
+ */
+async function generateNotes(qa_type) {
+  const token = await getToken();
+  const tabId = sessionData.currentTabId;
+  const { captureData, transcription } = sessionData;
+  if (!token) throw new Error('Authentication token missing.');
+  if (!captureData) throw new Error('No screen capture data available.');
+  if (!transcription) throw new Error('No audio transcription available.');
 
-  return {
-    title: 'Test Note Title',
-    content:
-      '### Mitacs is a nonprofit national research organization that partners with Canadian universities, industry and government, to support research and training programs in the broad fields of industrial and social innovation.\n Most Mitacs programs require a supervisor that is eligible to hold Tri-Agency funds and also typically require a 50% (+GST) cash contribution from an eligible partner. The intern must be an active student or postdoctoral fellow at the University, but the sponsor may consider recent graduates for internships. Most applications require the knowledge/approval of a Mitacs adviser (see below).\n\n##### Mitacs is a nonprofit national research organization that partners with Canadian universities, industry and government, to support research and training programs in the broad fields of industrial and social innovation.\nMost Mitacs programs require a supervisor that is eligible to hold Tri-Agency funds and also typically require a 50% (+GST) cash contribution from an eligible partner. The intern must be an active student or postdoctoral fellow at the University, but the sponsor may consider recent graduates for internships. Most applications require the knowledge/approval of a Mitacs adviser (see below).',
-    stored: false,
-  };
-  // try {
-  //   const response = await fetch(`${API_BASE_URL}/notes/generate`, {
-  //     method: 'POST',
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //       Authorization: `Bearer ${token}`,
-  //     },
-  //     body: JSON.stringify({
-  //       image_b64: captureData,
-  //       voice_text: transcription,
-  //       privacy_mode: true,
-  //     }),
-  //   });
-  //   const data = await response.json();
-  //   return {
-  //     title: data?.notes?.title,
-  //     content: data?.notes?.content,
-  //     stored: data?.stored,
-  //   };
-  // } catch (error) {
-  //   console.error('Error in generateNotes:', error);
-  //   throw error;
-  // }
+  chrome.tabs.sendMessage(tabId, {
+    action: 'stream_start',
+    status: 'Generating notes...',
+  });
+
+  sendUiUpdate('showLoader', {});
+
+  const streamUrl = `${API_BASE_URL}/notes/generate/stream`;
+
+  sendUiUpdate('updateProgress', {
+    elementId: 'generateProgress',
+    status: 'start',
+  });
+  sendUiUpdate('ui_setButtonState', {
+    elementId: 'generateBtn',
+    disabled: true,
+  });
+  setTimeout(
+    () =>
+      sendUiUpdate('updateStatus', {
+        message: 'Sending request to AI model (this may take 30-60 seconds)...',
+      }),
+    100
+  );
+
+  try {
+    const response = await fetch(streamUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        image_b64: captureData,
+        voice_text: transcription,
+        privacy_mode: true,
+        qa_type,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API Error: ${response.status} - ${errorText}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let fullContent = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        break;
+      }
+
+      const chunk = decoder.decode(value, { stream: true });
+      fullContent += chunk;
+      chrome.tabs
+        .sendMessage(tabId, {
+          action: 'stream_chunk',
+          chunk: chunk,
+        })
+        .catch((e) => {
+          console.warn('UI connection lost during stream:', e);
+        });
+    }
+    chrome.tabs.sendMessage(tabId, {
+      action: 'stream_end',
+    });
+    sendUiUpdate('ui_setButtonState', {
+      elementId: 'generateBtn',
+      disabled: true,
+    });
+    sendUiUpdate('ui_setButtonState', {
+      elementId: 'copyBtn',
+      disabled: false,
+    });
+    sendUiUpdate('ui_setButtonState', {
+      elementId: 'exportBtn',
+      disabled: true,
+    });
+    sendUiUpdate('ui_setButtonState', {
+      elementId: 'linearBtn',
+      disabled: true,
+    });
+    sendUiUpdate('updateStatus', {
+      message: 'Notes generation complete!',
+    });
+    sendUiUpdate('updateProgress', {
+      elementId: 'generateProgress',
+      status: 'success',
+    });
+    return { success: true, fullContent: fullContent };
+  } catch (error) {
+    console.error('Error in streaming notes:', error);
+    sendUiUpdate('updateProgress', {
+      elementId: 'generateProgress',
+      status: 'error',
+    });
+    sendUiUpdate('ui_setButtonState', {
+      elementId: 'generateBtn',
+      disabled: false,
+    });
+    chrome.tabs.sendMessage(tabId, {
+      action: 'stream_error',
+      error: error.message,
+    });
+    throw error;
+  } finally {
+    sendUiUpdate('hideLoader', {});
+  }
 }
 
 async function createLinearIssue({
@@ -511,9 +775,11 @@ async function createLinearIssue({
   linear_api_key,
   label_ids,
 }) {
+  sendUiUpdate('showLoader', {});
   try {
-    sessionData.token = await getToken(); // Get the current token
+    const token = await getToken();
     if (!token) throw new Error('Authentication token missing.');
+    const _priority = mapIssuePriorityToAPI(priority);
     const response = await fetch(`${API_BASE_URL}/linear/create-issue`, {
       method: 'POST',
       headers: {
@@ -523,7 +789,7 @@ async function createLinearIssue({
       body: JSON.stringify({
         title,
         description,
-        priority,
+        priority: _priority,
         team_id,
         linear_api_key,
         label_ids,
@@ -543,6 +809,8 @@ async function createLinearIssue({
   } catch (error) {
     console.error('Error in createLinearIssue:', error);
     throw error;
+  } finally {
+    sendUiUpdate('hideLoader', {});
   }
 }
 
@@ -550,6 +818,7 @@ async function createLinearIssue({
  * Login function to authenticate user and store token
  * @param {string} email - User's email address
  * @param {string} password - User's password
+ * @returns {Promise<{data: {full_name: string, token: string, privacy_mode: boolean} | null, success: string, message: string | null}>}
  */
 async function login(email, password) {
   if (!email || !password) {
@@ -559,6 +828,7 @@ async function login(email, password) {
       message: 'Please enter email and password',
     };
   }
+  sendUiUpdate('showLoader', {});
   try {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
@@ -569,55 +839,81 @@ async function login(email, password) {
     });
     const data = await response.json();
     if (response.ok) {
-      chrome.storage.local.set({ token: data?.access_token, expired: false });
-      return { data, status: 'success', message: null };
+      chrome.storage.local.set({
+        whispaEnabled: true,
+        user: {
+          token: data?.access_token,
+          full_name: data?.full_name,
+          privacy_mode: data?.privacy_mode,
+        },
+      });
+      return { data, success: true, message: null };
     } else {
-      return { data, status: 'error', message: null };
+      return { data, success: false, message: null };
     }
   } catch (error) {
     console.error('Error in login:', error);
     throw error;
+  } finally {
+    sendUiUpdate('hideLoader', {});
   }
 }
 
 async function register(email, password, name) {
   if (!email || !password || !name) {
-    alert('Please enter email, password, and name');
     return {
       data: null,
       status: 'error',
       message: 'Please enter email, password, and name',
     };
   }
+  sendUiUpdate('showLoader', {});
   try {
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, password, name }),
+      body: JSON.stringify({
+        email,
+        password,
+        full_name: name,
+        privacy_mode: true,
+      }),
     });
-    const data = await response.json();
+    const data = (await response.json()) ?? {
+      full_name: '',
+      access_token: '',
+      privacy_mode: true,
+    };
     if (response.ok) {
-      return { data, status: 'success', message: null };
+      chrome.storage.local.set({
+        whispaEnabled: true,
+        user: {
+          token: data?.access_token,
+          full_name: data?.full_name,
+          privacy_mode: data?.privacy_mode,
+        },
+      });
+      return { data, success: true, message: null };
     } else {
-      return { data, status: 'error', message: null };
+      return { data, success: false, message: null };
     }
   } catch (error) {
     console.error('Error in register:', error);
     throw error;
+  } finally {
+    sendUiUpdate('hideLoader', {});
   }
 }
 
-// Client-side JavaScript (e.g., in your extension's background or popup script)
-
-async function cacheAndSaveNotes(
+async function cacheAndSaveNotes({
   finalMarkdown,
   originalImageB64,
   originalVoiceText,
   currentSessionId,
-  isPrivacyMode = true
-) {
+  isPrivacyMode = true,
+}) {
   const titleMatch = finalMarkdown.match(/^#\s+(.+)/m);
   const title = titleMatch
     ? titleMatch[1].trim()

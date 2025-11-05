@@ -1,25 +1,21 @@
-/* overlay_ui.css */
-
-/* CRITICAL: Ensure the container floats above everything */
+/* Ensure the container floats above everything */
 #whispa-overlay-container {
-  all: unset; /* Reset all host page styles */
+  all: unset;
   position: fixed !important;
   top: 20px !important;
   right: 20px !important;
-  z-index: 2147483647 !important; /* Max z-index to stay on top */
-  font-family: 'Poppins', sans-serif; /* Use your preferred font */
+  z-index: 2147483647 !important;
+  /* font-family: 'Poppins', sans-serif; */
+  font-family: inherit;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   border-radius: 8px;
   width: 320px;
   max-width: 90vw;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-/* Style the core panel */
 .whispa-controls {
   background-color: #ffffff;
   border: 1px solid #e0e0e0;
@@ -27,9 +23,17 @@ button:disabled {
   padding: 10px;
 }
 
-/* Header and Logo Styles */
 header {
   margin-bottom: 10px;
+}
+
+#top_content {
+  cursor: grab;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed !important;
 }
 
 .top_content {
@@ -42,12 +46,18 @@ header {
 .logo {
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
 .logo-img {
   width: auto;
-  height: 24px;
-  margin-right: 8px;
+  height: 35px;
+}
+
+.logo-text {
+  color: #364891;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .actions {
@@ -79,10 +89,40 @@ header {
   background-color: #f0f0f0;
 }
 
+.close-btn:hover,
+.refresh-btn:hover {
+  background-color: transparent !important;
+}
+
+.close-btn img,
+.refresh-btn img {
+  opacity: 0.8;
+}
+
+.post-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#refreshIcon {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
 #modeSelectOverlay {
   padding: 4px;
   border-radius: 4px;
   border: 1px solid #ccc;
+  color: #364891;
+  /* color: #333; */
+  background-color: transparent;
+}
+
+#modeSelectOverlay:hover,
+#modeSelectOverlay:focus {
+  outline: none;
 }
 
 /* Main Content and Status */
@@ -95,31 +135,20 @@ main {
   margin-bottom: 5px;
   font-size: 0.85em;
   color: #555;
+  font-style: italic;
+}
+
+#progressContainerWrapper {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .progress-container {
   display: flex;
   gap: 5px;
   margin-bottom: 10px;
-}
-
-progress {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 6px;
-  border: none;
-  background-color: #e0e0e0;
-}
-
-progress::-webkit-progress-bar {
-  background-color: #e0e0e0;
-  border-radius: 3px;
-}
-
-progress::-webkit-progress-value {
-  background-color: #4caf50; /* Green color for progress */
-  border-radius: 3px;
 }
 
 /* Notes Section */
@@ -135,7 +164,7 @@ progress::-webkit-progress-value {
 
 #notes {
   font-size: 14px;
-  color: initial;
+  color: #333;
 }
 
 .post-actions,
@@ -163,11 +192,11 @@ progress::-webkit-progress-value {
 
 progress {
   width: 70px;
-  height: 10px;
+  height: 7px;
   appearance: none;
   -webkit-appearance: none;
   border: none;
-  border-radius: 10px;
+  border-radius: 5px;
   background-color: #e0e0e0;
   overflow: hidden;
 }
@@ -175,12 +204,12 @@ progress {
 /* Chrome, Safari, Edge */
 progress::-webkit-progress-bar {
   background-color: #eee;
-  border-radius: 10px;
+  border-radius: 5px;
 }
 
 progress::-webkit-progress-value {
   background-color: #16d47b;
-  border-radius: 10px;
+  border-radius: 5px;
   transition: width 0.3s ease;
 }
 
@@ -195,7 +224,8 @@ progress::-webkit-progress-value {
 /* Firefox */
 progress::-moz-progress-bar {
   background-color: #16d47b;
-  border-radius: 10px;
+  border-radius: 5px;
+  transition: width 0.3s ease;
 }
 
 .progress::-moz-progress-bar {
@@ -221,28 +251,24 @@ progress::-moz-progress-bar {
 }
 
 .linear-form {
-  background-color: #222;
+  /* background-color: #222; */
+  background-color: #f9f9f9;
   border-radius: 8px;
   padding: 20px;
   width: 80%;
   max-width: 400px;
+  color: #333 !important;
 }
 
 .linear-form h3 {
   margin-top: 0;
   margin-bottom: 15px;
-  color: #fff;
+  /* color: #fff; */
+  color: #333;
 }
 
 .form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  color: #aaa;
-  font-size: 12px;
+  margin: unset !important;
 }
 
 .form-group input,
@@ -250,11 +276,13 @@ progress::-moz-progress-bar {
 .form-group select {
   width: 100%;
   padding: 8px;
-  background-color: #333;
+  /* background-color: #333; */
+  background-color: #f9f9f9;
   border: 1px solid #444;
   border-radius: 4px;
-  color: #fff;
+  /* color: #fff; */
   font-size: 14px;
+  color: #333;
 }
 
 .form-group textarea {
@@ -276,7 +304,8 @@ progress::-moz-progress-bar {
 }
 
 .settings-modal-content {
-  background: #2c2c2c;
+  /* background: #2c2c2c; */
+  background-color: #f9f9f9;
   padding: 25px;
   border-radius: 10px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
@@ -287,27 +316,40 @@ progress::-moz-progress-bar {
 
 .form-group-container {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 10px;
+  color: #333 !important;
+}
+
+.form-group {
+  position: relative;
+}
+
+.eyeIcon {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  position: absolute;
+  right: 3%;
+  bottom: 18%;
+  background: white;
 }
 
 .settings-modal h2 {
   margin-top: 0;
   margin-bottom: 20px;
   font-size: 18px;
-  color: #ececec;
+  /* color: #ececec; */
   font-weight: 600;
-}
-
-.form-group {
-  margin-bottom: 15px;
+  color: #333;
 }
 
 .form-group label {
   display: block;
   margin-bottom: 8px;
   font-size: 14px;
-  color: #b0b0b0;
+  /* color: #b0b0b0; */
+  color: #333;
 }
 
 .form-group input,
@@ -316,8 +358,10 @@ progress::-moz-progress-bar {
   padding: 10px;
   border: 1px solid #444;
   border-radius: 5px;
-  background: #333;
-  color: #ececec;
+  /* background: #333; */
+  background-color: #f9f9f9;
+  /* color: #ececec; */
+  color: #333 !important;
   font-size: 14px;
 }
 
@@ -344,7 +388,7 @@ progress::-moz-progress-bar {
   /* transform: translateX(-50%); */
   background-color: #333;
   color: #fff;
-  padding: 10px 20px;
+  padding: 2px 10px;
   border-radius: 5px;
   z-index: 1000;
   opacity: 0;
@@ -359,10 +403,221 @@ progress::-moz-progress-bar {
   background-color: darkred;
 }
 
+.success {
+  background-color: #4caf50;
+}
+
 /* Success message */
 .success-message {
   display: block;
   margin-bottom: 15px;
   font-size: 14px;
-  color: #b0b0b0;
+  color: #364891;
+  /* color: #b0b0b0; */
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-secondary {
+  background-color: transparent;
+  color: #333;
+}
+.btn-secondary:hover {
+  opacity: 0.8;
+  background-color: transparent !important;
+}
+
+#register,
+#login {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding: 8px 12px;
+  margin: 20px 0;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+#loginBtn,
+#registerBtn {
+  background-color: #364891;
+  /* background-color: #855fff; */
+}
+
+#loginLink,
+#registerLink {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  text-decoration: underline;
+  color: #333;
+}
+
+#welcomeScreenContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: #777;
+  font-size: 30px;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin: 50px 0;
+}
+
+#flip {
+  height: 50px;
+  overflow: hidden;
+  margin: 0 10px;
+  box-sizing: content-box;
+}
+
+.flipper {
+  animation: show 14s cubic-bezier(0.785, 0.135, 0.15, 0.86) infinite;
+}
+
+.flipper > div {
+  height: 50px;
+}
+
+.flipper > div > div {
+  color: #fff;
+  padding: 4px 12px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #42c58a;
+}
+
+.flip-item.green > div {
+  background: #42c58a;
+}
+.flip-item.orange > div {
+  background: #ff9800;
+}
+.flip-item.blue > div {
+  background: #2196f3;
+}
+
+@keyframes show {
+  0% {
+    transform: translateY(0);
+  }
+  12% {
+    transform: translateY(0);
+  }
+  14% {
+    transform: translateY(calc(-1 * 1 * 50px));
+  }
+  26% {
+    transform: translateY(calc(-1 * 1 * 50px));
+  }
+  28% {
+    transform: translateY(calc(-1 * 2 * 50px));
+  }
+  40% {
+    transform: translateY(calc(-1 * 2 * 50px));
+  }
+  42% {
+    transform: translateY(calc(-1 * 3 * 50px));
+  }
+  54% {
+    transform: translateY(calc(-1 * 3 * 50px));
+  }
+  56% {
+    transform: translateY(calc(-1 * 4 * 50px));
+  }
+  68% {
+    transform: translateY(calc(-1 * 4 * 50px));
+  }
+  70% {
+    transform: translateY(calc(-1 * 5 * 50px));
+  }
+  82% {
+    transform: translateY(calc(-1 * 5 * 50px));
+  }
+  84% {
+    transform: translateY(calc(-1 * 6 * 50px));
+  }
+  98% {
+    transform: translateY(calc(-1 * 6 * 50px));
+  }
+  100% {
+    transform: translateY(calc(-1 * 7 * 50px));
+  }
+}
+
+.welcome-screen-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+#welcomeScreenFooter p {
+  width: 100%;
+  font-size: 12px;
+  color: #333;
+  text-align: center;
+}
+
+#welcomeScreenFooter .loader,
+#progressContainerWrapper .loader {
+  width: 48px;
+  height: 48px;
+  display: inline-block;
+  position: relative;
+}
+#progressContainerWrapper .loader {
+  width: 16px;
+  height: 16px;
+}
+#welcomeScreenFooter .loader::after,
+#welcomeScreenFooter .loader::before,
+#progressContainerWrapper .loader::after,
+#progressContainerWrapper .loader::before {
+  content: '';
+  box-sizing: border-box;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid #333;
+  position: absolute;
+  left: 0;
+  top: 0;
+  animation: animloader 2s linear infinite;
+}
+#progressContainerWrapper .loader::after,
+#progressContainerWrapper .loader::before {
+  bottom: 35px;
+  right: 30px;
+  width: 16px;
+  height: 16px;
+}
+#welcomeScreenFooter .loader::after,
+#progressContainerWrapper .loader::after {
+  animation-delay: 1s;
+}
+
+@keyframes animloader {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
 }

@@ -1,39 +1,42 @@
 # Whispa Browser Extension
 
-> A privacy-first browser extension that lets you whisper your thoughts without leaving a trace.
+> A privacy-first application that turns screen captures and voice input into structured notes—everything processed in-memory, nothing ever stored.
 
 ---
 
 ## Overview
 
-Whispa is a lightweight, open-source browser extension designed to give users a secure, ephemeral space for quick notes, passwords, or any text you don’t want lingering in your browser history, clipboard, or cloud services. Everything you type is stored **only in memory** and disappears the moment you close the popup or navigate away.
+Whispa AI Notes App is a lightweight, open-source tool that lets you create organized notes from what you see and say. Snap a screenshot or speak, and Whispa instantly extracts text with OCR, interprets images with an in-memory AI model, and transcribes voice using Gemini. All processing happens **only in RAM**; the moment you close the app, every pixel and syllable vanishes.
 
 ---
 
 ## Features
 
-| Feature                 | Description                                                                                 |
-| ----------------------- | ------------------------------------------------------------------------------------------- |
-| 🔒 **Zero Persistence** | Nothing is written to disk, localStorage, or synced across devices.                         |
-| ⚡ **Instant Access**   | Launch via toolbar icon or customizable keyboard shortcut (`Ctrl+Shift+W` / `Cmd+Shift+W`). |
-| 🎨 **Minimal UI**       | Clean, distraction-free interface that matches your browser’s theme (light/dark/auto).      |
-| 📋 **One-Click Copy**   | Copy any snippet to the clipboard with a single click; clipboard is cleared after 30 s.     |
-| 🧹 **Auto-Cleanup**     | Memory wiped after 5 min of inactivity or when the popup loses focus.                       |
+| Feature                 | Description                                                                                |
+| ----------------------- | ------------------------------------------------------------------------------------------ |
+| 🔒 **Zero Persistence** | No disk writes, no cloud sync—everything stays in memory and disappears on exit.           |
+| 📸 **Screen Capture**   | Grab any region; OCR + optional AI model turn visuals into editable text.                  |
+| 🎙️ **Voice to Notes**   | Speak naturally; Faster Whisper transcribes in real time with speaker-diarization support. |
+| ⚡ **Instant Access**   | Launch via toolbar icon or customizable shortcut (`Ctrl+Shift+W` / `Cmd+Shift+W`).         |
+| 🎨 **Minimal UI**       | Clean, distraction-free interface that matches your OS theme (light/dark/auto).            |
+| 📋 **One-Click Copy**   | Copy the generated note to clipboard; clipboard auto-clears after 30 s.                    |
+| 🧹 **Auto-Cleanup**     | Memory wiped after 5 min of inactivity or when the window loses focus.                     |
 
 ---
 
 ## Installation
 
-### Chrome / Edge / Brave
+### Desktop (Windows / macOS / Linux)
 
-1. Download the latest `whispa-chrome.zip` from [Releases](https://github.com/your-org/whispa/releases).
-2. Unpack to any folder.
-3. Open `chrome://extensions`, enable **Developer mode**, click **Load unpacked**, and select the folder.
+1. Download the latest `Whispa-AI-Setup.exe` / `.dmg` / `.AppImage` from [Releases](https://github.com/your-org/whispa-ai/releases).
+2. Run the installer; no admin rights required.
+3. Grant screen-recording and microphone permissions when prompted—permissions are used solely in-memory and never logged.
 
-### Firefox
+### Browser Extension (Chrome / Edge / Brave / Firefox)
 
-1. Download `whispa-firefox.xpi` from [Releases](https://github.com/your-org/whispa/releases).
-2. Drag-and-drop the file into Firefox or open `about:addons` → **Install Add-on From File**.
+1. Download `whispa-ai-extension.zip` from [Releases](https://github.com/your-org/whispa-ai/releases).
+2. Unpack and load as an unpacked extension (Chrome/Edge) or install the `.xpi` (Firefox).
+3. Note: OCR & AI run locally via WebAssembly; voice requires the desktop helper (bundled).
 
 ---
 
@@ -43,5 +46,7 @@ Whispa is a lightweight, open-source browser extension designed to give users a 
 
 - Node.js ≥ 18
 - pnpm (recommended) or npm
+- Python 3.10 (for Gemini)
+- CUDA (optional, for GPU acceleration)
 
 ### Clone & Install
